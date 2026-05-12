@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MML 02 &mdash; Linear Algebra</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0a0a; --bg-card: #0d1117; --bg-code: #161b22;
+            --text-primary: #e6edf3; --text-secondary: #8b949e;
+            --accent: #a78bfa; --accent-dim: #a78bfa44; --accent-glow: #a78bfa33;
+            --accent-2: #f472b6; --accent-3: #fbbf24; --accent-4: #34d399;
+            --border: #21262d;
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --font-body: 'Inter', sans-serif;
+            --max-width: 900px;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body { background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-body); font-size: 17px; line-height: 1.7; overflow-x: hidden; }
+        .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 2rem 1.5rem; text-align: center; position: relative; }
+        .hero::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 700px; height: 600px; background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+        .hero > * { position: relative; z-index: 1; }
+        .series-label { font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 1rem; }
+        .hero h1 { font-family: var(--font-display); font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 700; color: var(--text-primary); line-height: 1.2; margin-bottom: 1rem; }
+        .hero h1 .accent { color: var(--accent); }
+        .hero .subtitle { font-size: 1.1rem; color: var(--text-secondary); max-width: 640px; margin-bottom: 2rem; }
+        .tags { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 2.5rem; }
+        .tag { font-family: var(--font-mono); font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: 999px; border: 1px solid var(--accent); color: var(--accent); background: var(--accent-dim); white-space: nowrap; }
+        .pipeline { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.25rem; margin-bottom: 1rem; max-width: var(--max-width); }
+        .pipeline-step { font-family: var(--font-mono); font-size: 0.7rem; padding: 0.3rem 0.7rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; color: var(--text-secondary); white-space: nowrap; }
+        .pipeline-arrow { color: var(--accent); font-size: 0.9rem; font-weight: 700; }
+        .slide { min-height: 100vh; max-width: var(--max-width); margin: 0 auto; padding: 4rem 1.5rem; position: relative; display: flex; flex-direction: column; justify-content: center; }
+        .slide-number { font-family: var(--font-display); font-size: 5rem; font-weight: 700; color: var(--accent-dim); position: absolute; top: 2rem; right: 1.5rem; line-height: 1; user-select: none; }
+        .slide h2 { font-family: var(--font-display); font-size: 1.9rem; font-weight: 700; color: var(--accent); margin-bottom: 1.5rem; line-height: 1.25; }
+        .slide h3 { font-family: var(--font-display); font-size: 1.3rem; font-weight: 600; color: var(--text-primary); margin-top: 1.5rem; margin-bottom: 0.75rem; }
+        .slide p { margin-bottom: 1rem; color: var(--text-secondary); }
+        .slide p strong { color: var(--text-primary); }
+        .slide ul, .slide ol { margin-bottom: 1rem; padding-left: 1.5rem; color: var(--text-secondary); }
+        .slide li { margin-bottom: 0.4rem; }
+        .slide li strong { color: var(--text-primary); }
+        .slide code { background: var(--bg-code); padding: 0.1rem 0.35rem; border-radius: 3px; font-family: var(--font-mono); font-size: 0.85em; color: var(--accent); }
+        .diagram-grid { display: grid; gap: 0.75rem; margin: 1.5rem 0; padding: 1.5rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; }
+        .diagram-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+        .diagram-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+        .diagram-panel { padding: 1rem; background: var(--bg-code); border: 1px solid var(--border); border-radius: 6px; }
+        .diagram-panel.accent-border { border-left: 3px solid var(--accent); }
+        .diagram-panel.r { border-left: 3px solid var(--accent-2); }
+        .diagram-panel.y { border-left: 3px solid var(--accent-3); }
+        .diagram-panel.g { border-left: 3px solid var(--accent-4); }
+        .diagram-panel h4 { font-family: var(--font-display); font-size: 1rem; color: var(--accent); margin-bottom: 0.5rem; }
+        .diagram-panel.r h4 { color: var(--accent-2); }
+        .diagram-panel.y h4 { color: var(--accent-3); }
+        .diagram-panel.g h4 { color: var(--accent-4); }
+        .diagram-panel p, .diagram-panel ul { font-size: 0.9rem; }
+        .callout { background: var(--bg-card); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 1rem 1.25rem; margin: 1.25rem 0; }
+        .callout p { margin-bottom: 0; }
+        .callout .callout-label { font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.3rem; }
+        .quote { font-family: var(--font-display); font-size: 1.1rem; font-style: italic; color: var(--text-primary); padding: 1rem 1.5rem; border-left: 3px solid var(--accent); background: var(--bg-card); margin: 1.25rem 0; border-radius: 0 8px 8px 0; }
+        .quote .attr { display: block; margin-top: 0.5rem; font-style: normal; font-size: 0.85rem; color: var(--text-secondary); font-family: var(--font-mono); }
+        .canvas-wrap { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin: 1.25rem 0; overflow-x: auto; }
+        .canvas-wrap canvas, .canvas-wrap svg { display: block; margin: 0 auto; max-width: 100%; }
+        .control-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin: 1.25rem 0; }
+        .control-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+        .control-row label { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-secondary); min-width: 130px; }
+        .control-row input[type="range"] { flex: 1; min-width: 150px; accent-color: var(--accent); }
+        .control-row select, .control-row input[type="number"] { background: var(--bg-code); border: 1px solid var(--border); color: var(--text-primary); border-radius: 4px; padding: 0.3rem 0.5rem; font-family: var(--font-mono); font-size: 0.8rem; }
+        .control-row .val { font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); min-width: 80px; text-align: right; }
+        .btn { font-family: var(--font-mono); font-size: 0.8rem; padding: 0.4rem 0.9rem; background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent); border-radius: 4px; cursor: pointer; transition: background 0.15s ease; }
+        .btn:hover { background: rgba(167,139,250,0.25); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn.secondary { background: var(--bg-code); color: var(--text-secondary); border-color: var(--border); }
+        .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.5rem; margin-top: 0.75rem; }
+        .metric { background: var(--bg-code); border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem 0.8rem; text-align: center; }
+        .metric .metric-label { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em; }
+        .metric .metric-value { font-family: var(--font-display); font-size: 1.25rem; color: var(--accent); font-weight: 600; margin-top: 0.2rem; }
+        .contents-list { list-style: none; padding-left: 0; counter-reset: contents; }
+        .contents-list li { counter-increment: contents; padding: 0.6rem 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 1rem; }
+        .contents-list li:last-child { border-bottom: none; }
+        .contents-list li::before { content: counter(contents, decimal-leading-zero); font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); min-width: 2rem; }
+        .contents-list a { color: var(--text-primary); text-decoration: none; }
+        .contents-list a:hover { color: var(--accent); }
+        .footer { text-align: center; padding: 3rem 1.5rem; color: var(--text-secondary); font-size: 0.85rem; border-top: 1px solid var(--border); max-width: var(--max-width); margin: 0 auto; }
+        .footer a { color: var(--accent); text-decoration: none; }
+        .katex { color: var(--text-primary); }
+        .katex-display { margin: 1rem 0; overflow-x: auto; overflow-y: hidden; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin: 1rem 0; }
+        th { background: var(--bg-code); color: var(--accent); font-weight: 600; text-align: left; padding: 0.6rem 0.85rem; border-bottom: 1px solid var(--border); font-family: var(--font-display); }
+        td { padding: 0.5rem 0.85rem; border-bottom: 1px solid var(--border); color: var(--text-secondary); vertical-align: top; }
+        tr:last-child td { border-bottom: none; }
+        tr:nth-child(even) td { background: rgba(13, 17, 23, 0.5); }
+        .aug-matrix { font-family: var(--font-mono); font-size: 0.95rem; color: var(--text-primary); background: var(--bg-code); border: 1px solid var(--border); border-radius: 6px; padding: 1rem 1.25rem; margin: 0.75rem 0; display: inline-block; }
+        .aug-matrix .row { display: grid; grid-template-columns: 3.5rem 3.5rem 3.5rem 0.6rem 3.5rem; gap: 0.4rem; align-items: center; }
+        .aug-matrix .row span { text-align: right; }
+        .aug-matrix .row .bar { color: var(--accent); }
+        .aug-matrix .row.pivot span:nth-child(1) { color: var(--accent-3); font-weight: 700; }
+        .aug-matrix .row.pivot.col2 span:nth-child(2) { color: var(--accent-3); font-weight: 700; }
+        .aug-matrix .row.pivot.col3 span:nth-child(3) { color: var(--accent-3); font-weight: 700; }
+        .step-log { font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent-2); margin-top: 0.6rem; min-height: 1.2rem; }
+        @media (max-width: 640px) {
+            .slide { padding: 3rem 1rem; min-height: auto; }
+            .slide-number { font-size: 3rem; top: 1.5rem; right: 1rem; }
+            .slide h2 { font-size: 1.5rem; }
+            .diagram-grid.cols-2, .diagram-grid.cols-3 { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="hero">
+    <div class="series-label">Mathematics for Machine Learning &mdash; Deck 02</div>
+    <h1>Linear <span class="accent">Algebra</span></h1>
+    <p class="subtitle">From a single linear equation to vector spaces, rank, and linear maps &mdash; the language every later chapter of the book is written in.</p>
+
+    <div class="tags">
+        <span class="tag">systems</span><span class="tag">matrices</span>
+        <span class="tag">Gaussian elimination</span><span class="tag">vector spaces</span>
+        <span class="tag">basis</span><span class="tag">rank</span>
+        <span class="tag">linear maps</span><span class="tag">affine</span>
+    </div>
+
+    <div class="pipeline">
+        <span class="pipeline-step">$Ax=b$</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">row echelon</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">vector space</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">basis &amp; rank</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">linear map</span>
+    </div>
+</header>
+
+<section class="slide" id="slide-00">
+    <div class="slide-number">00</div>
+    <h2>Topics We'll Cover</h2>
+    <ul class="contents-list">
+        <li><a href="#slide-01">Three views of a linear system</a></li>
+        <li><a href="#slide-02">Matrices and matrix operations</a></li>
+        <li><a href="#slide-03">Interactive: Gaussian elimination</a></li>
+        <li><a href="#slide-04">Reduced row-echelon form and pivots</a></li>
+        <li><a href="#slide-05">Vector spaces &mdash; the eight axioms</a></li>
+        <li><a href="#slide-06">Span, linear independence, basis</a></li>
+        <li><a href="#slide-07">Rank and the four subspaces</a></li>
+        <li><a href="#slide-08">Linear maps as matrices</a></li>
+        <li><a href="#slide-09">Affine spaces</a></li>
+        <li><a href="#slide-10">Where this lands in Part II</a></li>
+        <li><a href="#slide-11">Cheat sheet</a></li>
+    </ul>
+</section>
+
+<section class="slide" id="slide-01">
+    <div class="slide-number">01</div>
+    <h2>Three Views of a Linear System</h2>
+    <p>Consider the system the book uses as its running example:</p>
+    <p>$$\begin{aligned} 2x_1 + 4x_2 - 2x_3 &amp;= \phantom{-}2 \\ 4x_1 + 9x_2 - 3x_3 &amp;= \phantom{-}8 \\ -2x_1 + -3x_2 + 7x_3 &amp;= 10 \end{aligned}$$</p>
+
+    <div class="diagram-grid cols-3">
+        <div class="diagram-panel accent-border">
+            <h4>1. Algebraic view</h4>
+            <p>"Find numbers $x_1, x_2, x_3$ that make every line simultaneously true." This is what the system <em>says</em>, and it's how you'd write it on paper in school.</p>
+        </div>
+        <div class="diagram-panel y">
+            <h4>2. Row view (matrix)</h4>
+            <p>Stack coefficients into a matrix:</p>
+            <p>$$A\mathbf{x} = \mathbf{b}, \quad A=\begin{bmatrix}2 &amp; 4 &amp; -2\\4 &amp; 9 &amp; -3\\-2 &amp; -3 &amp; 7\end{bmatrix},\; \mathbf{b}=\begin{bmatrix}2\\8\\10\end{bmatrix}.$$</p>
+            <p>Each row is one equation; row operations preserve the solution set.</p>
+        </div>
+        <div class="diagram-panel g">
+            <h4>3. Column view</h4>
+            <p>Re-read $A\mathbf{x}=\mathbf{b}$ as "find weights $x_1, x_2, x_3$ on the columns of $A$ so they sum to $\mathbf{b}$":</p>
+            <p>$$x_1\begin{bmatrix}2\\4\\-2\end{bmatrix} + x_2\begin{bmatrix}4\\9\\-3\end{bmatrix} + x_3\begin{bmatrix}-2\\-3\\7\end{bmatrix} = \begin{bmatrix}2\\8\\10\end{bmatrix}.$$</p>
+            <p>The solvability question becomes: is $\mathbf{b}$ in the span of the columns?</p>
+        </div>
+    </div>
+    <p>The book and this deck use all three views. The column view is the one that prepares us for vector spaces; the row view is the one we manipulate algorithmically.</p>
+</section>
+
+<section class="slide" id="slide-02">
+    <div class="slide-number">02</div>
+    <h2>Matrices and Matrix Operations</h2>
+    <p>A matrix is an $m\times n$ rectangular array of numbers. Three operations matter, and one identity matters.</p>
+
+    <h3>Sum and scalar multiple</h3>
+    <p>$$(A+B)_{ij} = A_{ij} + B_{ij}, \qquad (\alpha A)_{ij} = \alpha A_{ij}.$$</p>
+
+    <h3>Matrix multiplication</h3>
+    <p>If $A\in\mathbb{R}^{m\times k}$ and $B\in\mathbb{R}^{k\times n}$, then $(AB)_{ij} = \sum_{\ell=1}^k A_{i\ell} B_{\ell j}$. The inner dimension $k$ must match. Multiplication is associative and distributive but <em>not</em> commutative.</p>
+
+    <h3>Identity and inverse</h3>
+    <p>$I_n$ has ones on the diagonal and zeros elsewhere; $I_n A = A I_n = A$ for $A$ of compatible size. A square matrix $A$ has an inverse $A^{-1}$ iff its columns span $\mathbb{R}^n$, equivalently $\det A\neq 0$, equivalently the system $A\mathbf{x}=\mathbf{0}$ has only the zero solution.</p>
+
+    <div class="callout">
+        <div class="callout-label">Three ways to read $AB$</div>
+        <p>(i) entry-by-entry dot products; (ii) $B$ acts on the columns of $A^\top$; (iii) the columns of $AB$ are linear combinations of the columns of $A$ with weights given by the columns of $B$. Every later chapter uses at least one of these.</p>
+    </div>
+
+    <h3>The transpose</h3>
+    <p>$(A^\top)_{ij}=A_{ji}$. The identity that comes back endlessly is $(AB)^\top = B^\top A^\top$ &mdash; written the way an attention layer multiplies query against key transpose.</p>
+</section>
+
+<section class="slide" id="slide-03">
+    <div class="slide-number">03</div>
+    <h2>Interactive: Gaussian Elimination</h2>
+    <p>Drag the buttons to step through Gaussian elimination on the system. Three row operations are allowed; one preserves the solution set:</p>
+    <ul>
+        <li><strong>swap</strong> two rows,</li>
+        <li><strong>scale</strong> a row by a non-zero constant,</li>
+        <li><strong>add</strong> a scalar multiple of one row to another.</li>
+    </ul>
+
+    <div class="canvas-wrap" style="background:var(--bg-code); padding:1.5rem 1rem;">
+        <div style="display:flex; gap:1.5rem; flex-wrap:wrap; align-items:flex-start; justify-content:center;">
+            <div class="aug-matrix" id="aug-matrix">
+                <!-- filled in by JS -->
+            </div>
+            <div style="flex:1; min-width:220px;">
+                <div class="step-log" id="step-log">click <strong>Step</strong> to begin elimination &rarr; row echelon form</div>
+                <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.6rem;">
+                    Pivots are <span style="color:var(--accent-3); font-weight:700;">amber</span>; reduce below each pivot, then sweep above for reduced row-echelon form.
+                </div>
+                <div style="display:flex; gap:0.5rem; margin-top: 1rem; flex-wrap: wrap;">
+                    <button class="btn" id="step-btn">Step &rarr;</button>
+                    <button class="btn secondary" id="reset-btn">Reset</button>
+                </div>
+                <div style="margin-top: 0.8rem; font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-secondary);">
+                    Solution: <span id="soln" style="color: var(--accent-4); font-weight:600;">x = ?</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <p>The system $A\mathbf{x}=\mathbf{b}$ has a unique solution exactly when elimination produces three pivots and no zero row with a non-zero right-hand side. The next slide makes the "pivot" picture precise.</p>
+</section>
+
+<section class="slide" id="slide-04">
+    <div class="slide-number">04</div>
+    <h2>Reduced Row-Echelon Form and Pivots</h2>
+    <p>After elimination a matrix is in <strong>row-echelon form</strong> (REF) if</p>
+    <ol>
+        <li>every all-zero row sits at the bottom,</li>
+        <li>each leading non-zero entry (the <em>pivot</em>) sits strictly to the right of the pivot above it.</li>
+    </ol>
+    <p>It's in <strong>reduced row-echelon form</strong> (RREF) if additionally every pivot equals 1 and every column containing a pivot has zeros elsewhere. RREF is unique &mdash; the row-reduction algorithm produces the same RREF regardless of which row operations you use to get there.</p>
+
+    <h3>Three solvability cases</h3>
+    <div class="diagram-grid cols-3">
+        <div class="diagram-panel g">
+            <h4>Unique solution</h4>
+            <p>Every variable column has a pivot, and no inconsistency. The system has exactly one solution &mdash; $A$ is invertible if it's square.</p>
+        </div>
+        <div class="diagram-panel y">
+            <h4>Infinitely many</h4>
+            <p>At least one variable column has <em>no</em> pivot &mdash; it's a free variable. The solution set is a translated subspace ("an affine hyperplane").</p>
+        </div>
+        <div class="diagram-panel r">
+            <h4>No solution</h4>
+            <p>A row reads $0 = c$ for some $c\ne0$ &mdash; the right-hand side $\mathbf{b}$ is not in the column space of $A$.</p>
+        </div>
+    </div>
+    <p>The number of pivots equals the rank of $A$. The number of free variables equals $n - \mathrm{rank}(A)$; this is the dimension of the null space (slide 07).</p>
+</section>
+
+<section class="slide" id="slide-05">
+    <div class="slide-number">05</div>
+    <h2>Vector Spaces &mdash; The Eight Axioms</h2>
+    <p>A <strong>real vector space</strong> $V$ is a set with two operations: a way to add elements and a way to scale them by real numbers. They must satisfy eight axioms.</p>
+
+    <table>
+        <thead><tr><th>Axiom</th><th>Statement</th></tr></thead>
+        <tbody>
+            <tr><td>associativity</td><td>$(\mathbf{u}+\mathbf{v})+\mathbf{w} = \mathbf{u}+(\mathbf{v}+\mathbf{w})$</td></tr>
+            <tr><td>commutativity</td><td>$\mathbf{u}+\mathbf{v} = \mathbf{v}+\mathbf{u}$</td></tr>
+            <tr><td>identity</td><td>$\exists\, \mathbf{0} \in V$ with $\mathbf{v}+\mathbf{0}=\mathbf{v}$</td></tr>
+            <tr><td>inverse</td><td>$\forall\, \mathbf{v}\in V, \;\exists\,-\mathbf{v}$ with $\mathbf{v}+(-\mathbf{v})=\mathbf{0}$</td></tr>
+            <tr><td>compatibility</td><td>$\alpha(\beta\mathbf{v})=(\alpha\beta)\mathbf{v}$</td></tr>
+            <tr><td>scalar identity</td><td>$1\cdot\mathbf{v}=\mathbf{v}$</td></tr>
+            <tr><td>scalar distributivity</td><td>$\alpha(\mathbf{u}+\mathbf{v})=\alpha\mathbf{u}+\alpha\mathbf{v}$</td></tr>
+            <tr><td>vector distributivity</td><td>$(\alpha+\beta)\mathbf{v}=\alpha\mathbf{v}+\beta\mathbf{v}$</td></tr>
+        </tbody>
+    </table>
+
+    <p>Examples that recur in ML: $\mathbb{R}^D$ (every embedding); polynomials up to degree $k$ (feature maps); continuous functions on an interval (function spaces); and the space of $m\times n$ matrices (weight matrices).</p>
+
+    <div class="callout">
+        <div class="callout-label">Why the abstraction matters</div>
+        <p>Polynomials are vectors, but no polynomial is "an arrow at the origin". The abstract definition is exactly what lets us take ML algorithms designed for $\mathbb{R}^D$ &mdash; e.g. PCA &mdash; and apply them inside <em>function</em> spaces (kernel PCA), inside <em>matrix</em> spaces (low-rank weight factorisation), or inside <em>infinite-dimensional</em> Hilbert spaces (RKHS).</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-06">
+    <div class="slide-number">06</div>
+    <h2>Span, Linear Independence, Basis</h2>
+
+    <h3>Linear combination and span</h3>
+    <p>A <strong>linear combination</strong> of vectors $\mathbf{v}_1, \dots, \mathbf{v}_k$ is any $\alpha_1\mathbf{v}_1+\dots+\alpha_k\mathbf{v}_k$. The <strong>span</strong> is the set of all such combinations &mdash; always a subspace of $V$.</p>
+
+    <h3>Linear independence</h3>
+    <p>$\mathbf{v}_1,\dots,\mathbf{v}_k$ are <strong>linearly independent</strong> if the only $\alpha$'s with $\sum\alpha_i\mathbf{v}_i=\mathbf{0}$ are $\alpha_i=0$ for all $i$. Equivalently, no $\mathbf{v}_i$ is in the span of the others &mdash; nothing is redundant.</p>
+
+    <h3>Basis and dimension</h3>
+    <p>A <strong>basis</strong> $\mathcal{B}=(\mathbf{b}_1,\dots,\mathbf{b}_n)$ is an ordered linearly independent set whose span is the whole space. Every basis has the same number of vectors $n=\dim V$, the <strong>dimension</strong>.</p>
+
+    <h3>Coordinates</h3>
+    <p>Once a basis is chosen, every $\mathbf{v}\in V$ has a unique tuple of <strong>coordinates</strong> $[\mathbf{v}]_{\mathcal{B}}=(\alpha_1,\dots,\alpha_n)$ with $\mathbf{v}=\sum\alpha_i\mathbf{b}_i$. Picking a different basis re-labels every vector; the underlying geometry is unchanged. This is exactly the operation PCA performs in deck 10.</p>
+
+    <div class="callout">
+        <div class="callout-label">Test for independence</div>
+        <p>Stack the vectors as columns of a matrix $V$. They are independent iff $\mathrm{rank}(V) = k$, iff $V^\top V$ is invertible, iff the only solution of $V\boldsymbol\alpha = \mathbf{0}$ is $\boldsymbol\alpha=\mathbf{0}$. Gaussian elimination on $V$ gives all three answers simultaneously.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-07">
+    <div class="slide-number">07</div>
+    <h2>Rank and the Four Subspaces</h2>
+    <p>For an $m\times n$ matrix $A$ the book defines:</p>
+
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>Column space (range)</h4>
+            <p>$\mathrm{Col}(A) = \mathrm{span}(\text{columns of } A) \subseteq \mathbb{R}^m$.</p>
+            <p>$\mathbf{b}\in\mathrm{Col}(A)$ iff $A\mathbf{x}=\mathbf{b}$ has a solution. $\dim\mathrm{Col}(A) = \mathrm{rank}(A)$.</p>
+        </div>
+        <div class="diagram-panel y">
+            <h4>Null space (kernel)</h4>
+            <p>$\mathrm{Nul}(A) = \{\mathbf{x}\in\mathbb{R}^n : A\mathbf{x}=\mathbf{0}\}$.</p>
+            <p>$\dim\mathrm{Nul}(A) = n - \mathrm{rank}(A)$ &mdash; the number of free variables.</p>
+        </div>
+        <div class="diagram-panel g">
+            <h4>Row space</h4>
+            <p>$\mathrm{Row}(A) = \mathrm{Col}(A^\top) \subseteq \mathbb{R}^n$. Same dimension as the column space: row-rank = column-rank.</p>
+        </div>
+        <div class="diagram-panel r">
+            <h4>Left null space</h4>
+            <p>$\mathrm{Nul}(A^\top)=\{\mathbf{y}\in\mathbb{R}^m : A^\top\mathbf{y}=\mathbf{0}\}$. Dimension $m-\mathrm{rank}(A)$.</p>
+        </div>
+    </div>
+
+    <p>The two facts that come back constantly in ML:</p>
+    <p>$$\mathbb{R}^n = \mathrm{Row}(A) \oplus \mathrm{Nul}(A), \qquad \mathbb{R}^m = \mathrm{Col}(A) \oplus \mathrm{Nul}(A^\top).$$</p>
+    <p>The row space and null space are <em>orthogonal complements</em> inside $\mathbb{R}^n$; same for column &amp; left-null inside $\mathbb{R}^m$. Deck 03 turns this into the orthogonal-projection picture that linear regression in deck 09 uses.</p>
+</section>
+
+<section class="slide" id="slide-08">
+    <div class="slide-number">08</div>
+    <h2>Linear Maps as Matrices</h2>
+    <p>A function $\Phi:V\to W$ between vector spaces is <strong>linear</strong> if</p>
+    <p>$$\Phi(\alpha\mathbf{u}+\beta\mathbf{v}) = \alpha\Phi(\mathbf{u}) + \beta\Phi(\mathbf{v}).$$</p>
+    <p>Fix a basis $\mathcal{B}=(\mathbf{b}_1,\dots,\mathbf{b}_n)$ for $V$ and $\mathcal{C}=(\mathbf{c}_1,\dots,\mathbf{c}_m)$ for $W$. Write the image of each basis vector in the $\mathcal{C}$-coordinates:</p>
+    <p>$$\Phi(\mathbf{b}_j) = \sum_{i=1}^{m} A_{ij}\, \mathbf{c}_i.$$</p>
+    <p>The numbers $A_{ij}$ are the entries of the <strong>matrix representation</strong> $A=M_\mathcal{C\leftarrow B}(\Phi)$. Once we have $A$, applying $\Phi$ in coordinates is matrix-vector multiplication: $[\Phi(\mathbf{v})]_\mathcal{C} = A\,[\mathbf{v}]_\mathcal{B}$.</p>
+
+    <div class="callout">
+        <div class="callout-label">Why this matters for ML</div>
+        <p>Every fully-connected layer of a neural network is a linear map $\Phi$ followed by a non-linearity. The weight matrix $W$ is exactly $M_\mathcal{C\leftarrow B}(\Phi)$ &mdash; with the standard basis on both sides. Choosing a clever basis on either side (RoPE, PCA, whitening) gives the <em>same</em> $\Phi$ a different, often sparser, matrix.</p>
+    </div>
+
+    <h3>Composition</h3>
+    <p>If $\Phi:V\to W$ and $\Psi:W\to U$ are linear with matrices $A$ and $B$ respectively, then $\Psi\circ\Phi$ has matrix $BA$ (note the order). This is why matrix multiplication exists: it is composition of linear maps in coordinates.</p>
+</section>
+
+<section class="slide" id="slide-09">
+    <div class="slide-number">09</div>
+    <h2>Affine Spaces</h2>
+    <p>A linear subspace must contain the origin. An <strong>affine subspace</strong> doesn't:</p>
+    <p>$$L = \mathbf{x}_0 + U = \{\mathbf{x}_0 + \mathbf{u} : \mathbf{u} \in U\}$$</p>
+    <p>where $U$ is a linear subspace and $\mathbf{x}_0$ is a fixed offset. Lines, planes, hyperplanes in general position are all affine.</p>
+
+    <h3>Affine maps</h3>
+    <p>$\boldsymbol\phi(\mathbf{x}) = A\mathbf{x} + \mathbf{c}$. Equivalently, a linear map followed by translation. The set of affine maps is what ML actually uses: every <code>nn.Linear</code> in PyTorch has a bias term.</p>
+
+    <h3>Hyperplanes</h3>
+    <p>An affine hyperplane in $\mathbb{R}^D$ is $\{\mathbf{x} : \mathbf{w}^\top\mathbf{x}=b\}$, defined by a normal $\mathbf{w}\ne\mathbf{0}$ and an offset $b\in\mathbb{R}$. The SVM in deck 12 is built around finding the affine hyperplane with the largest margin.</p>
+
+    <div class="callout">
+        <div class="callout-label">A small confession</div>
+        <p>The book is honest that almost everything ML calls "linear" is in fact affine. We continue this small abuse &mdash; it never causes confusion in practice as long as you remember to absorb the bias by appending a 1 to $\mathbf{x}$.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-10">
+    <div class="slide-number">10</div>
+    <h2>Where This Lands in Part II</h2>
+
+    <table>
+        <thead><tr><th>Concept</th><th>Used by</th><th>Where</th></tr></thead>
+        <tbody>
+            <tr><td>Matrix-vector $A\mathbf{x}$</td><td>Every algorithm</td><td>Defines features &rarr; activations</td></tr>
+            <tr><td>Column space</td><td>Linear regression (ch. 9)</td><td>Least-squares prediction = projection onto $\mathrm{Col}(\Phi)$</td></tr>
+            <tr><td>Null space</td><td>Ridge regression (ch. 9)</td><td>Regularisation picks a unique solution out of the affine solution set</td></tr>
+            <tr><td>Rank</td><td>PCA (ch. 10)</td><td>The optimal rank-$k$ approximation has rank exactly $k$</td></tr>
+            <tr><td>Linear map</td><td>Feature map (ch. 8, 9, 12)</td><td>$\boldsymbol\phi(\mathbf{x})$ before the model is a linear (or kernelised linear) map</td></tr>
+            <tr><td>Hyperplane</td><td>SVM (ch. 12)</td><td>The decision boundary is an affine hyperplane $\mathbf{w}^\top\mathbf{x}=b$</td></tr>
+        </tbody>
+    </table>
+
+    <p>Every later deck quietly assumes the contents of this one. If you find yourself stuck on a step in deck 09, the answer is almost always: "what does this look like in the row / column / null-space picture?"</p>
+</section>
+
+<section class="slide" id="slide-11">
+    <div class="slide-number">11</div>
+    <h2>Cheat Sheet</h2>
+
+    <table>
+        <thead><tr><th>Object</th><th>Definition</th><th>One-line use</th></tr></thead>
+        <tbody>
+            <tr><td>$A\in\mathbb{R}^{m\times n}$</td><td>Rectangular array of numbers</td><td>Stores any linear map between coordinate spaces</td></tr>
+            <tr><td>$\mathrm{rank}(A)$</td><td>Number of pivots in RREF</td><td>Dimension of the column space</td></tr>
+            <tr><td>$\mathrm{Nul}(A)$</td><td>$\{\mathbf{x}:A\mathbf{x}=\mathbf{0}\}$</td><td>Direction(s) the system is blind to</td></tr>
+            <tr><td>Basis</td><td>Linearly independent spanning set</td><td>Gives every vector coordinates</td></tr>
+            <tr><td>Dimension</td><td>Size of any basis</td><td>Counts how many degrees of freedom the space has</td></tr>
+            <tr><td>Linear map $\Phi$</td><td>$\Phi(\alpha\mathbf{u}+\beta\mathbf{v}) = \alpha\Phi\mathbf{u}+\beta\Phi\mathbf{v}$</td><td>The right notion of "homomorphism" for vector spaces</td></tr>
+            <tr><td>Matrix of $\Phi$</td><td>Coordinates of $\Phi(\mathbf{b}_j)$ in $\mathcal{C}$</td><td>Lets you apply $\Phi$ by matrix multiplication</td></tr>
+            <tr><td>Composition</td><td>$\Psi\circ\Phi \leftrightarrow BA$</td><td>Stacking layers is matrix product</td></tr>
+            <tr><td>Affine subspace</td><td>$\mathbf{x}_0+U$</td><td>Solution set of a consistent under-determined system</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout">
+        <div class="callout-label">Up next</div>
+        <p>Deck 03 puts a <em>geometry</em> on the vector space &mdash; inner products, lengths, angles, projections. From there every "shortest distance" question (closest point on a line, closest line through a cloud of points, closest separating hyperplane) has the same answer: orthogonal projection.</p>
+    </div>
+</section>
+
+<footer class="footer">
+    <p><strong>Book:</strong> Deisenroth, Faisal &amp; Ong, <em>Mathematics for Machine Learning</em> &mdash; Cambridge University Press, 2020, chapter 2.<br>Free PDF: <a href="https://mml-book.github.io/book/mml-book.pdf">mml-book.github.io/book/mml-book.pdf</a></p>
+    <p style="margin-top: 0.6rem;">Part of the <a href="https://github.com/BrendanJamesLynskey/MML_Hub">MML Companion Series</a> &middot; <a href="https://github.com/BrendanJamesLynskey/Mathematics">Mathematics hub</a></p>
+</footer>
+
+<script>
+// Interactive Gaussian elimination on a 3x3 augmented matrix
+(function() {
+    const mat0 = [
+        [2, 4, -2, 2],
+        [4, 9, -3, 8],
+        [-2, -3, 7, 10],
+    ];
+
+    // Pre-computed step sequence: each step is (row operation, brief description)
+    // We will produce reduced row-echelon form.
+    const steps = [
+        {op: m => { rowOp(m, 1, 0, -2); }, label: 'R2 = R2 - 2 R1'},
+        {op: m => { rowOp(m, 2, 0, 1);  }, label: 'R3 = R3 + 1 R1'},
+        {op: m => { rowOp(m, 2, 1, -1); }, label: 'R3 = R3 - 1 R2'},
+        {op: m => { scaleRow(m, 0, 0.5); }, label: 'R1 = (1/2) R1'},
+        {op: m => { scaleRow(m, 2, 1/4); }, label: 'R3 = (1/4) R3'},
+        {op: m => { rowOp(m, 1, 2, 3);  }, label: 'R2 = R2 + 3 R3'},
+        {op: m => { rowOp(m, 0, 2, 1);  }, label: 'R1 = R1 + 1 R3'},
+        {op: m => { rowOp(m, 0, 1, -2);  }, label: 'R1 = R1 - 2 R2'},
+    ];
+
+    function rowOp(m, target, source, factor) {
+        for (let j=0;j<4;j++) m[target][j] = m[target][j] + factor * m[source][j];
+    }
+    function scaleRow(m, r, f) { for (let j=0;j<4;j++) m[r][j] *= f; }
+
+    function deepCopy(m){ return m.map(r=>r.slice()); }
+
+    let state = deepCopy(mat0);
+    let cursor = 0;
+
+    function fmt(x) {
+        if (Math.abs(x) < 1e-9) return '0';
+        if (Math.abs(x - Math.round(x)) < 1e-9) return String(Math.round(x));
+        return x.toFixed(2);
+    }
+
+    function pivotClass(rowIdx) {
+        // pivot at (0,0) after step 0; (1,1) after step 2; (2,2) after step 4
+        if (cursor >= 4 && rowIdx === 2) return 'pivot col3';
+        if (cursor >= 2 && rowIdx === 1) return 'pivot col2';
+        if (cursor >= 0 && rowIdx === 0) return 'pivot';
+        return '';
+    }
+
+    function render() {
+        const aug = document.getElementById('aug-matrix');
+        let html = '';
+        for (let i = 0; i < 3; i++) {
+            html += `<div class="row ${pivotClass(i)}">`+
+                    `<span>${fmt(state[i][0])}</span>`+
+                    `<span>${fmt(state[i][1])}</span>`+
+                    `<span>${fmt(state[i][2])}</span>`+
+                    `<span class="bar">|</span>`+
+                    `<span>${fmt(state[i][3])}</span>`+
+                    `</div>`;
+        }
+        aug.innerHTML = html;
+        const log = document.getElementById('step-log');
+        const stepBtn = document.getElementById('step-btn');
+        if (cursor < steps.length) {
+            log.innerHTML = `next: <strong>${steps[cursor].label}</strong>`;
+            stepBtn.disabled = false;
+            stepBtn.textContent = `Step ${cursor+1} of ${steps.length} →`;
+        } else {
+            log.innerHTML = '<strong style="color:var(--accent-4)">RREF reached.</strong> three pivots, no free variables &rArr; unique solution.';
+            stepBtn.disabled = true;
+            stepBtn.textContent = 'Done';
+        }
+        const soln = document.getElementById('soln');
+        if (cursor >= steps.length) {
+            soln.textContent = `x1 = ${fmt(state[0][3])},  x2 = ${fmt(state[1][3])},  x3 = ${fmt(state[2][3])}`;
+        } else {
+            soln.textContent = '(still reducing…)';
+        }
+    }
+
+    document.getElementById('step-btn').addEventListener('click', () => {
+        if (cursor < steps.length) {
+            steps[cursor].op(state);
+            cursor++;
+            render();
+        }
+    });
+    document.getElementById('reset-btn').addEventListener('click', () => {
+        state = deepCopy(mat0);
+        cursor = 0;
+        render();
+    });
+    render();
+})();
+</script>
+
+</body>
+</html>
